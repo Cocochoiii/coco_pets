@@ -3,6 +3,9 @@ import connectDB from '@/lib/mongodb'
 import { verifyAuth } from '@/lib/auth'
 import { User } from '@/models'
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 // PUT - Update user profile
 export async function PUT(req: NextRequest) {
     try {

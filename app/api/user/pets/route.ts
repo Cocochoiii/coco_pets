@@ -3,6 +3,9 @@ import connectDB from '@/lib/mongodb'
 import { verifyAuth } from '@/lib/auth'
 import mongoose from 'mongoose'
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 // Pet Schema for user's pets
 const UserPetSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

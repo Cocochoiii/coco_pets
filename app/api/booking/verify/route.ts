@@ -3,6 +3,9 @@ import Stripe from 'stripe'
 import connectDB from '@/lib/mongodb'
 import mongoose from 'mongoose'
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: '2023-10-16',
 })
