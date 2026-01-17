@@ -1,7 +1,85 @@
 // config/index.ts
 // Centralized configuration for Coco's Pet Paradise
 
-const config = {
+interface PromoCode {
+  type: 'percentage' | 'fixed'
+  value: number
+  minDays: number
+}
+
+interface Config {
+  app: {
+    name: string
+    url: string
+    env: string
+    isDev: boolean
+    isProd: boolean
+  }
+  business: {
+    name: string
+    email: string
+    phone: string
+    address: string
+    serviceRadius: number
+    timezone: string
+  }
+  auth: {
+    jwtSecret: string
+    jwtExpiresIn: string
+    refreshTokenExpiresIn: string
+    bcryptRounds: number
+    maxLoginAttempts: number
+    lockoutDuration: number
+  }
+  database: {
+    uri: string
+  }
+  stripe: {
+    publishableKey: string
+    secretKey: string
+    webhookSecret: string
+    currency: string
+  }
+  pricing: {
+    cat: { daily: number }
+    dog: { small: number; medium: number; large: number }
+    addOns: Record<string, number>
+    discounts: Record<string, number>
+    promoCodes: Record<string, PromoCode>
+    depositPercentage: number
+    taxRate: number
+  }
+  capacity: {
+    cats: { total: number; default: number }
+    dogs: { total: number; default: number }
+  }
+  notifications: {
+    vapidPublicKey: string
+    vapidPrivateKey: string
+    vapidEmail: string
+  }
+  email: {
+    from: string
+    replyTo: string
+  }
+  upload: {
+    maxFileSize: number
+    allowedImageTypes: string[]
+    allowedDocTypes: string[]
+  }
+  rateLimit: {
+    windowMs: number
+    max: { default: number; auth: number; register: number; payment: number }
+  }
+  admin: {
+    email: string
+  }
+  cron: {
+    secret: string
+  }
+}
+
+const config: Config = {
   app: {
     name: "Coco's Pet Paradise",
     url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
@@ -66,7 +144,7 @@ const config = {
       VIP25: { type: 'percentage', value: 25, minDays: 7 },
       FIRSTTIME: { type: 'percentage', value: 15, minDays: 1 },
       FLAT50: { type: 'fixed', value: 5000, minDays: 5 },
-    } as Record<string, { type: string; value: number; minDays: number }>,
+    },
     depositPercentage: 0.30,
     taxRate: 0.0625,
   },

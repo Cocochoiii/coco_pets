@@ -1,30 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { connectDB } from '@/lib/mongodb'
-import { verifyToken } from '@/lib/auth'
+import connectDB from '@/lib/mongodb'
+import { verifyAuth } from '@/lib/auth'
 import mongoose from 'mongoose'
 
 // User Booking Schema
 const UserBookingSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    petId: { type: mongoose.Schema.Types.ObjectId, ref: 'UserPet' },
     petName: { type: String, required: true },
     petType: { type: String, enum: ['cat', 'dog'], required: true },
     petBreed: { type: String },
-    service: { type: String, required: true }, // 'Overnight Boarding', 'Day Care'
+    service: { type: String, required: true },
     checkIn: { type: Date, required: true },
     checkOut: { type: Date, required: true },
     checkInTime: { type: String, default: '14:00' },
     checkOutTime: { type: String, default: '11:00' },
     nights: { type: Number, required: true },
-    basePrice: { type: Number, required: true },
-    addOns: [{
-        name: String,
-        price: Number
-    }],
+    basePrice: { type: Number },
+    addOns: [{ name: String, price: Number }],
     addOnsTotal: { type: Number, default: 0 },
     totalPrice: { type: Number, required: true },
-    status: { 
-        type: String, 
+    status: {
+        type: String,
         enum: ['pending', 'confirmed', 'active', 'completed', 'cancelled'],
         default: 'pending'
     },
@@ -37,134 +33,68 @@ const UserBookingSchema = new mongoose.Schema({
     stripePaymentIntentId: { type: String },
     notes: { type: String },
     specialRequests: { type: String },
-    emergencyContact: {
-        name: String,
-        phone: String,
-        relationship: String
-    },
-    petDetails: {
-        feedingInstructions: String,
-        medications: String,
-        specialNeeds: String,
-        vaccinated: Boolean,
-        neutered: Boolean
-    },
-    cancellationReason: { type: String },
-    cancelledAt: { type: Date },
 }, { timestamps: true })
 
 const UserBooking = mongoose.models.UserBooking || mongoose.model('UserBooking', UserBookingSchema)
 
-// GET - Get user's bookings
+// GET - Get all user bookings
 export async function GET(req: NextRequest) {
     try {
-        const user = await verifyToken(req)
-        if (!user) {
+        const auth = await verifyAuth(req)
+        if (!auth) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
         }
 
         await connectDB()
-        
+
         const { searchParams } = new URL(req.url)
         const status = searchParams.get('status')
-        
-        const query: any = { userId: user.id }
-        if (status) {
+        const limit = parseInt(searchParams.get('limit') || '10')
+        const page = parseInt(searchParams.get('page') || '1')
+
+        const query: Record<string, unknown> = { userId: auth.userId }
+        if (status && status !== 'all') {
             query.status = status
         }
 
         const bookings = await UserBooking.find(query)
-            .sort({ checkIn: -1 })
-            .limit(50)
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit)
 
-        return NextResponse.json({ success: true, bookings })
+        const total = await UserBooking.countDocuments(query)
+
+        return NextResponse.json({
+            success: true,
+            bookings,
+            pagination: {
+                page,
+                limit,
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        })
     } catch (error) {
         console.error('Error fetching bookings:', error)
         return NextResponse.json({ success: false, error: 'Failed to fetch bookings' }, { status: 500 })
     }
 }
 
-// POST - Create new booking
+// POST - Create a new booking (simple version without Stripe)
 export async function POST(req: NextRequest) {
     try {
-        const user = await verifyToken(req)
-        if (!user) {
+        const auth = await verifyAuth(req)
+        if (!auth) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
         }
 
         const body = await req.json()
-        const {
-            petId,
-            petName,
-            petType,
-            petBreed,
-            service,
-            checkIn,
-            checkOut,
-            checkInTime,
-            checkOutTime,
-            nights,
-            basePrice,
-            addOns,
-            addOnsTotal,
-            totalPrice,
-            notes,
-            specialRequests,
-            emergencyContact,
-            petDetails,
-            stripeSessionId
-        } = body
-
-        if (!petName || !petType || !service || !checkIn || !checkOut || !totalPrice) {
-            return NextResponse.json({ 
-                success: false, 
-                error: 'Missing required fields' 
-            }, { status: 400 })
-        }
 
         await connectDB()
 
-        // Check for overlapping bookings
-        const existingBooking = await UserBooking.findOne({
-            userId: user.id,
-            petName: petName,
-            status: { $in: ['pending', 'confirmed', 'active'] },
-            $or: [
-                {
-                    checkIn: { $lte: new Date(checkOut) },
-                    checkOut: { $gte: new Date(checkIn) }
-                }
-            ]
-        })
-
-        if (existingBooking) {
-            return NextResponse.json({
-                success: false,
-                error: 'This pet already has a booking during these dates'
-            }, { status: 400 })
-        }
-
         const booking = await UserBooking.create({
-            userId: user.id,
-            petId,
-            petName,
-            petType,
-            petBreed,
-            service,
-            checkIn: new Date(checkIn),
-            checkOut: new Date(checkOut),
-            checkInTime,
-            checkOutTime,
-            nights,
-            basePrice,
-            addOns,
-            addOnsTotal,
-            totalPrice,
-            notes,
-            specialRequests,
-            emergencyContact,
-            petDetails,
-            stripeSessionId,
+            ...body,
+            userId: auth.userId,
             status: 'pending',
             paymentStatus: 'pending'
         })
@@ -173,5 +103,73 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         console.error('Error creating booking:', error)
         return NextResponse.json({ success: false, error: 'Failed to create booking' }, { status: 500 })
+    }
+}
+
+// PUT - Update a booking
+export async function PUT(req: NextRequest) {
+    try {
+        const auth = await verifyAuth(req)
+        if (!auth) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const body = await req.json()
+        const { bookingId, ...updateData } = body
+
+        if (!bookingId) {
+            return NextResponse.json({ success: false, error: 'Booking ID required' }, { status: 400 })
+        }
+
+        await connectDB()
+
+        const booking = await UserBooking.findOneAndUpdate(
+            { _id: bookingId, userId: auth.userId },
+            { $set: updateData },
+            { new: true }
+        )
+
+        if (!booking) {
+            return NextResponse.json({ success: false, error: 'Booking not found' }, { status: 404 })
+        }
+
+        return NextResponse.json({ success: true, booking })
+    } catch (error) {
+        console.error('Error updating booking:', error)
+        return NextResponse.json({ success: false, error: 'Failed to update booking' }, { status: 500 })
+    }
+}
+
+// DELETE - Cancel a booking
+export async function DELETE(req: NextRequest) {
+    try {
+        const auth = await verifyAuth(req)
+        if (!auth) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const { searchParams } = new URL(req.url)
+        const bookingId = searchParams.get('id')
+
+        if (!bookingId) {
+            return NextResponse.json({ success: false, error: 'Booking ID required' }, { status: 400 })
+        }
+
+        await connectDB()
+
+        const booking = await UserBooking.findOneAndUpdate(
+            { _id: bookingId, userId: auth.userId },
+            { $set: { status: 'cancelled' } },
+            { new: true }
+        )
+
+        if (!booking) {
+            return NextResponse.json({ success: false, error: 'Booking not found' }, { status: 404 })
+        }
+
+        return NextResponse.json({ success: true, message: 'Booking cancelled', booking })
+    } catch (error) {
+        console.error('Error cancelling booking:', error)
+        return NextResponse.json({ success: false, error: 'Failed to cancel booking' }, { status: 500 })
     }
 }
