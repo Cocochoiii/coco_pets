@@ -28,15 +28,19 @@ export function comparePassword(password: string, hash: string): Promise<boolean
 }
 
 export function generateToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
-  return jwt.sign(payload, config.auth.jwtSecret, {
-    expiresIn: config.auth.jwtExpiresIn,
-  })
+  return jwt.sign(
+      payload,
+      config.auth.jwtSecret,
+      { expiresIn: config.auth.jwtExpiresIn } as jwt.SignOptions
+  )
 }
 
 export function generateRefreshToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
-  return jwt.sign(payload, config.auth.jwtSecret, {
-    expiresIn: config.auth.refreshTokenExpiresIn,
-  })
+  return jwt.sign(
+      payload,
+      config.auth.jwtSecret,
+      { expiresIn: config.auth.refreshTokenExpiresIn } as jwt.SignOptions
+  )
 }
 
 export function verifyToken(token: string): JWTPayload | null {
