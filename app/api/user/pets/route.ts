@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { connectDB } from '@/lib/mongodb'
-import { verifyToken } from '@/lib/auth'
+import connectDB from '@/lib/mongodb'
+import { verifyAuth } from '@/lib/auth'
 import mongoose from 'mongoose'
 
 // Pet Schema for user's pets
@@ -26,13 +26,13 @@ const UserPet = mongoose.models.UserPet || mongoose.model('UserPet', UserPetSche
 // GET - Get all user's pets
 export async function GET(req: NextRequest) {
     try {
-        const user = await verifyToken(req)
-        if (!user) {
+        const auth = await verifyAuth(req)
+        if (!auth) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
         }
 
         await connectDB()
-        const pets = await UserPet.find({ userId: user.id }).sort({ createdAt: -1 })
+        const pets = await UserPet.find({ userId: auth.userId }).sort({ createdAt: -1 })
 
         return NextResponse.json({ success: true, pets })
     } catch (error) {
@@ -44,8 +44,8 @@ export async function GET(req: NextRequest) {
 // POST - Add new pet
 export async function POST(req: NextRequest) {
     try {
-        const user = await verifyToken(req)
-        if (!user) {
+        const auth = await verifyAuth(req)
+        if (!auth) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
         }
 
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
         await connectDB()
 
         const pet = await UserPet.create({
-            userId: user.id,
+            userId: auth.userId,
             name,
             type,
             breed,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { verifyToken } from '@/lib/auth'
-import { connectDB } from '@/lib/mongodb'
+import { verifyAuth } from '@/lib/auth'
+import connectDB from '@/lib/mongodb'
 import mongoose from 'mongoose'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -24,8 +24,8 @@ const UserBookingSchema = new mongoose.Schema({
     addOns: [{ name: String, price: Number }],
     addOnsTotal: { type: Number, default: 0 },
     totalPrice: { type: Number, required: true },
-    status: { 
-        type: String, 
+    status: {
+        type: String,
         enum: ['pending', 'confirmed', 'active', 'completed', 'cancelled'],
         default: 'pending'
     },
@@ -57,8 +57,8 @@ const UserBooking = mongoose.models.UserBooking || mongoose.model('UserBooking',
 // POST - Create booking and Stripe checkout session
 export async function POST(req: NextRequest) {
     try {
-        const user = await verifyToken(req)
-        if (!user) {
+        const auth = await verifyAuth(req)
+        if (!auth) {
             return NextResponse.json(
                 { success: false, error: 'Please log in to complete booking' },
                 { status: 401 }
@@ -75,15 +75,15 @@ export async function POST(req: NextRequest) {
             )
         }
 
-        const { 
-            serviceType, 
-            petType, 
-            checkInDate, 
+        const {
+            serviceType,
+            petType,
+            checkInDate,
             checkOutDate,
             checkInTime,
             checkOutTime,
-            pets, 
-            addOns = [], 
+            pets,
+            addOns = [],
             totalPrice,
             nights,
             specialRequests,
@@ -111,8 +111,8 @@ export async function POST(req: NextRequest) {
         }
 
         // Create line items for each pet
-        const lineItems: any[] = []
-        
+        const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
+
         for (const pet of pets) {
             let petPrice = 0
             if (pet.type === 'cat') {
@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
                 else if (weight <= 50) petPrice = serviceType === 'boarding' ? 50 : 30
                 else petPrice = serviceType === 'boarding' ? 60 : 35
             }
-            
+
             lineItems.push({
                 price_data: {
                     currency: 'usd',
@@ -163,15 +163,15 @@ export async function POST(req: NextRequest) {
             mode: 'payment',
             success_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/booking/cancel`,
-            customer_email: user.email,
+            customer_email: auth.user.email,
             metadata: {
-                userId: user.id,
+                userId: auth.userId,
                 serviceType,
                 petType,
                 checkInDate,
                 checkOutDate,
                 nights: nights.toString(),
-                petNames: pets.map((p: any) => p.name).join(', '),
+                petNames: pets.map((p: { name: string }) => p.name).join(', '),
             },
         })
 
@@ -193,10 +193,10 @@ export async function POST(req: NextRequest) {
                 return a ? { name: a.name, price: a.perDay ? a.price * nights : a.price } : null
             }).filter(Boolean)
 
-            const addOnsTotal = addOnsList.reduce((sum: number, a: any) => sum + a.price, 0) / pets.length
+            const addOnsTotal = addOnsList.reduce((sum: number, a: { price: number } | null) => sum + (a?.price || 0), 0) / pets.length
 
             const newBooking = await UserBooking.create({
-                userId: user.id,
+                userId: auth.userId,
                 petName: pet.name,
                 petType: pet.type,
                 petBreed: pet.breed,
@@ -232,10 +232,11 @@ export async function POST(req: NextRequest) {
             url: session.url,
             bookingIds: createdBookings.map(b => b._id)
         })
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Booking checkout error:', error)
+        const errorMessage = error instanceof Error ? error.message : 'Checkout failed'
         return NextResponse.json(
-            { success: false, error: error.message || 'Checkout failed' },
+            { success: false, error: errorMessage },
             { status: 500 }
         )
     }

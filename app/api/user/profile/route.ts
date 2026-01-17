@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { connectDB } from '@/lib/mongodb'
-import { verifyToken } from '@/lib/auth'
+import connectDB from '@/lib/mongodb'
+import { verifyAuth } from '@/lib/auth'
 import { User } from '@/models'
 
 // PUT - Update user profile
 export async function PUT(req: NextRequest) {
     try {
-        const user = await verifyToken(req)
-        if (!user) {
+        const auth = await verifyAuth(req)
+        if (!auth) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
         }
 
@@ -17,7 +17,7 @@ export async function PUT(req: NextRequest) {
         await connectDB()
 
         const updatedUser = await User.findByIdAndUpdate(
-            user.id,
+            auth.userId,
             {
                 $set: {
                     ...(name && { name }),
@@ -43,14 +43,14 @@ export async function PUT(req: NextRequest) {
 // GET - Get user profile
 export async function GET(req: NextRequest) {
     try {
-        const user = await verifyToken(req)
-        if (!user) {
+        const auth = await verifyAuth(req)
+        if (!auth) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
         }
 
         await connectDB()
 
-        const userData = await User.findById(user.id).select('-password')
+        const userData = await User.findById(auth.userId).select('-password')
 
         if (!userData) {
             return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })

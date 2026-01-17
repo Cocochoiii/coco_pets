@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { connectDB } from '@/lib/mongodb'
-import { verifyToken } from '@/lib/auth'
+import connectDB from '@/lib/mongodb'
+import { verifyAuth } from '@/lib/auth'
 import mongoose from 'mongoose'
 
 const UserPetSchema = new mongoose.Schema({
@@ -15,19 +15,21 @@ const UserPet = mongoose.models.UserPet || mongoose.model('UserPet', UserPetSche
 // DELETE - Delete a pet
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const user = await verifyToken(req)
-        if (!user) {
+        const auth = await verifyAuth(req)
+        if (!auth) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
         }
 
+        const { id } = await params
+
         await connectDB()
-        
+
         const pet = await UserPet.findOneAndDelete({
-            _id: params.id,
-            userId: user.id
+            _id: id,
+            userId: auth.userId
         })
 
         if (!pet) {
@@ -44,19 +46,20 @@ export async function DELETE(
 // PUT - Update a pet
 export async function PUT(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const user = await verifyToken(req)
-        if (!user) {
+        const auth = await verifyAuth(req)
+        if (!auth) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
         }
 
+        const { id } = await params
         const body = await req.json()
         await connectDB()
 
         const pet = await UserPet.findOneAndUpdate(
-            { _id: params.id, userId: user.id },
+            { _id: id, userId: auth.userId },
             { $set: body },
             { new: true }
         )

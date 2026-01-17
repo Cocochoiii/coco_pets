@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { connectDB } from '@/lib/mongodb'
+import connectDB from '@/lib/mongodb'
 import mongoose from 'mongoose'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -62,8 +62,8 @@ export async function GET(req: NextRequest) {
         // Update all bookings with this session to confirmed
         await UserBooking.updateMany(
             { stripeSessionId: sessionId },
-            { 
-                $set: { 
+            {
+                $set: {
                     status: 'confirmed',
                     paymentStatus: 'paid',
                     stripePaymentIntentId: session.payment_intent as string
@@ -89,10 +89,11 @@ export async function GET(req: NextRequest) {
                 email: session.customer_details?.email
             }
         })
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Verification error:', error)
+        const errorMessage = error instanceof Error ? error.message : 'Verification failed'
         return NextResponse.json(
-            { success: false, error: error.message || 'Verification failed' },
+            { success: false, error: errorMessage },
             { status: 500 }
         )
     }
