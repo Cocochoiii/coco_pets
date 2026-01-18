@@ -4,7 +4,6 @@ import connectDB from '@/lib/mongodb'
 import User from '@/models/User'
 import { hashPassword, generateToken, generateRefreshToken, validatePassword } from '@/lib/auth'
 import { successResponse, errorResponse, validateRequired, validateEmail, generateReferralCode, ErrorCodes } from '@/lib/api-utils'
-import { sendWelcomeEmail } from '@/lib/services/email'
 import config from '@/config'
 
 export async function POST(request: NextRequest) {
@@ -49,8 +48,14 @@ export async function POST(request: NextRequest) {
     const token = generateToken(tokenPayload)
     const refreshToken = generateRefreshToken(tokenPayload)
 
-    // Send welcome email
-    await sendWelcomeEmail(user.email, user.name, userReferralCode)
+    // 邮件发送改为可选 - 失败不影响注册
+    try {
+      const { sendWelcomeEmail } = await import('@/lib/services/email')
+      await sendWelcomeEmail(user.email, user.name, userReferralCode)
+    } catch (emailError) {
+      console.error('Welcome email failed (non-blocking):', emailError)
+      // 不抛出错误，继续注册流程
+    }
 
     const response = successResponse({
       user: {
@@ -84,6 +89,6 @@ export async function POST(request: NextRequest) {
     return response
   } catch (error: any) {
     console.error('Registration error:', error)
-    return errorResponse(error.message, 500, ErrorCodes.INTERNAL_ERROR)
+    return errorResponse(error.message || 'Registration failed', 500, ErrorCodes.INTERNAL_ERROR)
   }
 }

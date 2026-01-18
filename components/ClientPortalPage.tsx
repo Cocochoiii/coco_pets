@@ -66,7 +66,8 @@ function ClientPortalContent() {
             const data = await res.json()
 
             if (!data.success) {
-                toast.error(data.error || 'Login failed')
+                console.error('Login failed:', data)
+                toast.error(data.error || data.message || 'Login failed')
                 setIsLoading(false)
                 return
             }
@@ -158,7 +159,8 @@ function ClientPortalContent() {
             const data = await res.json()
 
             if (!data.success) {
-                toast.error(data.error || 'Registration failed')
+                console.error('Registration failed:', data)
+                toast.error(data.error || data.message || 'Registration failed')
                 setIsLoading(false)
                 return
             }
