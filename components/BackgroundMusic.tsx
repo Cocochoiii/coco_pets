@@ -73,8 +73,12 @@ export default function BackgroundMusic() {
             </audio>
 
             {/* Music Control Button */}
+            {/*
+                Mobile/Tablet (< xl): bottom-20 to stay above "back to top" button (which is at bottom-4)
+                Desktop (xl+): bottom-6 to align with chat widget (back to top is hidden on xl+)
+            */}
             <motion.div
-                className="fixed bottom-4 md:bottom-6 right-4 sm:right-6 z-40"
+                className="fixed bottom-20 right-4 sm:right-6 xl:bottom-6 z-40"
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 1, type: 'spring', stiffness: 200 }}
