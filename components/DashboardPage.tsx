@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -307,7 +307,7 @@ const ReportCardDetailModal = ({ report, onClose }: { report: ReportCard; onClos
 
 // ==================== Main Dashboard ====================
 
-export default function DashboardPage() {
+function DashboardContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const [user, setUser] = useState<UserData | null>(null)
@@ -855,5 +855,20 @@ export default function DashboardPage() {
                 {selectedReport && <ReportCardDetailModal report={selectedReport} onClose={() => setSelectedReport(null)} />}
             </AnimatePresence>
         </div>
+    )
+}
+
+// Suspense wrapper for useSearchParams
+export default function DashboardPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-neutral-50 flex items-center justify-center">
+                <div className="animate-spin">
+                    <PawPrint className="w-12 h-12 text-primary-700" />
+                </div>
+            </div>
+        }>
+            <DashboardContent />
+        </Suspense>
     )
 }
