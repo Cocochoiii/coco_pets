@@ -1,0 +1,7 @@
+# Ignore local uploads folder - files are stored in Cloudinary
+public/uploads
+
+# Other common ignores
+.env*.local
+.DS_Store
+*.log
