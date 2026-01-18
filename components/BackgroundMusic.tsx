@@ -74,7 +74,7 @@ export default function BackgroundMusic() {
 
             {/* Music Control Button */}
             <motion.div
-                className="fixed bottom-20 sm:bottom-24 right-4 sm:right-6 z-40"
+                className="fixed bottom-4 md:bottom-6 right-4 sm:right-6 z-40"
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 1, type: 'spring', stiffness: 200 }}
