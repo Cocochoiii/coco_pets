@@ -8,7 +8,7 @@ import {
     User, Calendar, Heart, CreditCard, Settings, LogOut, PawPrint, Plus,
     Edit2, Trash2, Clock, Star, Gift, MessageCircle, CheckCircle, TrendingUp,
     Award, Cat, Dog, Home, ChevronRight, Phone, Mail, MapPin, Bell, Shield,
-    Loader2  // 新增
+    Loader2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -40,7 +40,7 @@ interface Booking {
     checkIn: string
     checkOut: string
     status: 'pending' | 'confirmed' | 'active' | 'completed' | 'cancelled'
-    paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded'  // 新增
+    paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded'
     totalPrice: number
     addOns?: string[]
 }
@@ -56,7 +56,7 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true)
     const [showAddPet, setShowAddPet] = useState(false)
     const [newPet, setNewPet] = useState<Partial<Pet>>({ type: 'cat', vaccinated: true })
-    const [payingBookingId, setPayingBookingId] = useState<string | null>(null)  // 新增
+    const [payingBookingId, setPayingBookingId] = useState<string | null>(null)
 
     useEffect(() => {
         // 检查登录状态
@@ -90,7 +90,17 @@ export default function DashboardPage() {
         setLoading(false)
     }, [router])
 
-    const handleLogout = () => {
+    // ========== 修改: 调用登出 API 清除 cookie ==========
+    const handleLogout = async () => {
+        try {
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+            })
+        } catch (error) {
+            console.error('Logout API error:', error)
+        }
+
         localStorage.removeItem('user')
         sessionStorage.setItem('fromLogout', 'true')
         window.dispatchEvent(new Event('userLogout'))
@@ -142,7 +152,7 @@ export default function DashboardPage() {
         }
     }
 
-    // ========== 新增: Pay Now 功能 ==========
+    // ========== Pay Now 功能 ==========
     const handlePayNow = async (booking: Booking) => {
         setPayingBookingId(booking.id)
 
@@ -175,6 +185,14 @@ export default function DashboardPage() {
 
             const data = await res.json()
 
+            // 如果 401 未授权，重新登录
+            if (res.status === 401) {
+                toast.error('Session expired. Please log in again.')
+                localStorage.removeItem('user')
+                router.push('/client-portal?redirect=/dashboard')
+                return
+            }
+
             if (data.url) {
                 window.location.href = data.url
             } else {
@@ -192,7 +210,6 @@ export default function DashboardPage() {
         return booking.paymentStatus !== 'paid' &&
             ['pending', 'confirmed'].includes(booking.status)
     }
-    // ========== 新增结束 ==========
 
     if (loading) {
         return (
@@ -417,7 +434,6 @@ export default function DashboardPage() {
                                                             <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
                                                                 {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                                                             </span>
-                                                            {/* 新增: Pay Now 按钮 */}
                                                             {needsPayment(booking) && (
                                                                 <button
                                                                     onClick={() => handlePayNow(booking)}
@@ -502,7 +518,6 @@ export default function DashboardPage() {
                                                                             {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                                                                         </span>
                                                                         <p className="mt-2 font-semibold text-neutral-900">${booking.totalPrice}</p>
-                                                                        {/* 新增: Pay Now 按钮 */}
                                                                         {needsPayment(booking) && (
                                                                             <button
                                                                                 onClick={() => handlePayNow(booking)}

@@ -43,6 +43,7 @@ function ClientPortalContent() {
         }
     }, [router])
 
+    // ========== 修改: 调用真正的登录 API ==========
     const handleLogin = async () => {
         if (!loginData.email || !loginData.password) {
             toast.error('Please fill in all fields')
@@ -51,57 +52,78 @@ function ClientPortalContent() {
 
         setIsLoading(true)
 
-        // 模拟延迟
-        await new Promise(r => setTimeout(r, 700))
-
-        // 检查是否是管理员
-        const isAdmin = loginData.email.trim().toLowerCase() === 'hcaicoco@gmail.com' && loginData.password === '121212'
-
-        // 创建用户对象
-        const userObj = {
-            name: isAdmin ? 'Coco' : loginData.email.split('@')[0],
-            email: loginData.email.trim().toLowerCase(),
-            role: isAdmin ? 'admin' : 'user',
-            permissions: isAdmin ? ['edit_pets', 'edit_content', 'view_all'] : ['view_only'],
-            loyaltyPoints: Math.floor(Math.random() * 500),
-            referralCode: `REF${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-            createdAt: new Date().toISOString()
-        }
-
-        // 保存到 localStorage
-        localStorage.setItem('user', JSON.stringify(userObj))
-
-        // 触发事件通知其他组件
-        window.dispatchEvent(new Event('userLogin'))
-        window.dispatchEvent(new Event('storage'))
-
-        if (isAdmin) {
-            toast.success('Welcome back, Admin Coco!', {
-                icon: '👑',
-                style: { background: '#111827', color: '#fff' }
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    email: loginData.email,
+                    password: loginData.password
+                })
             })
-        } else {
-            toast.success(`Welcome, ${userObj.name}!`, {
-                style: { background: '#111827', color: '#fff' }
-            })
-        }
 
-        setIsLoading(false)
+            const data = await res.json()
 
-        // 重定向
-        if (redirectTo.includes('#booking')) {
-            router.replace('/')
-            setTimeout(() => {
-                const bookingSection = document.getElementById('booking')
-                if (bookingSection) {
-                    bookingSection.scrollIntoView({ behavior: 'smooth' })
-                }
-            }, 500)
-        } else {
-            router.replace(redirectTo)
+            if (!data.success) {
+                toast.error(data.error || 'Login failed')
+                setIsLoading(false)
+                return
+            }
+
+            // 转换用户数据格式（适配 Dashboard UI）
+            const userForStorage = {
+                id: data.data.user.id,
+                name: data.data.user.name,
+                email: data.data.user.email,
+                phone: data.data.user.phone,
+                role: data.data.user.role === 'customer' ? 'user' : data.data.user.role,
+                permissions: data.data.user.role === 'admin' ? ['edit_pets', 'edit_content', 'view_all'] : ['view_only'],
+                loyaltyPoints: Math.floor(Math.random() * 500),
+                referralCode: data.data.user.referralCode,
+                createdAt: new Date().toISOString()
+            }
+
+            // 保存到 localStorage
+            localStorage.setItem('user', JSON.stringify(userForStorage))
+
+            // 触发事件通知其他组件
+            window.dispatchEvent(new Event('userLogin'))
+            window.dispatchEvent(new Event('storage'))
+
+            if (data.data.user.role === 'admin') {
+                toast.success('Welcome back, Admin Coco!', {
+                    icon: '👑',
+                    style: { background: '#111827', color: '#fff' }
+                })
+            } else {
+                toast.success(`Welcome, ${data.data.user.name}!`, {
+                    style: { background: '#111827', color: '#fff' }
+                })
+            }
+
+            setIsLoading(false)
+
+            // 重定向
+            if (redirectTo.includes('#booking')) {
+                router.replace('/')
+                setTimeout(() => {
+                    const bookingSection = document.getElementById('booking')
+                    if (bookingSection) {
+                        bookingSection.scrollIntoView({ behavior: 'smooth' })
+                    }
+                }, 500)
+            } else {
+                router.replace(redirectTo)
+            }
+        } catch (error: any) {
+            console.error('Login error:', error)
+            toast.error('Login failed. Please try again.')
+            setIsLoading(false)
         }
     }
 
+    // ========== 修改: 调用真正的注册 API ==========
     const handleSignup = async () => {
         if (!signupData.name || !signupData.email || !signupData.phone || !signupData.password || !signupData.confirmPassword) {
             toast.error('Please fill in all fields')
@@ -113,49 +135,75 @@ function ClientPortalContent() {
             return
         }
 
-        if (signupData.password.length < 6) {
-            toast.error('Password must be at least 6 characters')
+        if (signupData.password.length < 8) {
+            toast.error('Password must be at least 8 characters')
             return
         }
 
         setIsLoading(true)
-        await new Promise(r => setTimeout(r, 700))
 
-        // 新注册用户始终是普通用户
-        const userObj = {
-            name: signupData.name,
-            email: signupData.email.trim().toLowerCase(),
-            phone: signupData.phone,
-            role: 'user',
-            permissions: ['view_only'],
-            loyaltyPoints: 100, // 新用户送积分
-            referralCode: `REF${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-            createdAt: new Date().toISOString()
-        }
+        try {
+            const res = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    name: signupData.name,
+                    email: signupData.email,
+                    phone: signupData.phone,
+                    password: signupData.password
+                })
+            })
 
-        localStorage.setItem('user', JSON.stringify(userObj))
+            const data = await res.json()
 
-        // 触发事件
-        window.dispatchEvent(new Event('userLogin'))
-        window.dispatchEvent(new Event('storage'))
+            if (!data.success) {
+                toast.error(data.error || 'Registration failed')
+                setIsLoading(false)
+                return
+            }
 
-        toast.success('Account created! Welcome to Coco\'s Pet Paradise!', {
-            icon: '🎉',
-            style: { background: '#111827', color: '#fff' }
-        })
+            // 转换用户数据格式
+            const userForStorage = {
+                id: data.data.user.id,
+                name: data.data.user.name,
+                email: data.data.user.email,
+                phone: data.data.user.phone,
+                role: 'user',
+                permissions: ['view_only'],
+                loyaltyPoints: 100,
+                referralCode: data.data.user.referralCode,
+                createdAt: new Date().toISOString()
+            }
 
-        setIsLoading(false)
+            localStorage.setItem('user', JSON.stringify(userForStorage))
 
-        if (redirectTo.includes('#booking')) {
-            router.replace('/')
-            setTimeout(() => {
-                const bookingSection = document.getElementById('booking')
-                if (bookingSection) {
-                    bookingSection.scrollIntoView({ behavior: 'smooth' })
-                }
-            }, 500)
-        } else {
-            router.push('/dashboard')
+            // 触发事件
+            window.dispatchEvent(new Event('userLogin'))
+            window.dispatchEvent(new Event('storage'))
+
+            toast.success('Account created! Welcome to Coco\'s Pet Paradise!', {
+                icon: '🎉',
+                style: { background: '#111827', color: '#fff' }
+            })
+
+            setIsLoading(false)
+
+            if (redirectTo.includes('#booking')) {
+                router.replace('/')
+                setTimeout(() => {
+                    const bookingSection = document.getElementById('booking')
+                    if (bookingSection) {
+                        bookingSection.scrollIntoView({ behavior: 'smooth' })
+                    }
+                }, 500)
+            } else {
+                router.push('/dashboard')
+            }
+        } catch (error: any) {
+            console.error('Signup error:', error)
+            toast.error('Registration failed. Please try again.')
+            setIsLoading(false)
         }
     }
 
@@ -356,7 +404,7 @@ function ClientPortalContent() {
                                                 value={signupData.password}
                                                 onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
                                                 className="w-full pl-10 pr-12 py-3 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-0 transition-all"
-                                                placeholder="Min. 6 characters"
+                                                placeholder="Min. 8 characters"
                                             />
                                             <button
                                                 type="button"
