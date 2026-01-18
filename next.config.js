@@ -8,9 +8,41 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
     ],
   },
   reactStrictMode: true,
+
+  // Security headers (replaces middleware)
+  async headers() {
+    return [
+      {
+        // Apply to all routes
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+        ],
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig
