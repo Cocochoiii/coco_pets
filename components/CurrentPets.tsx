@@ -175,8 +175,8 @@ export default function CurrentPets() {
                         <Image
                             src="/svgs/current-pets-left.svg"
                             alt="Current pets decoration left"
-                            width={200}
-                            height={200}
+                            width={150}
+                            height={150}
                             className="w-36 h-36 lg:w-48 lg:h-48 xl:w-56 xl:h-56 opacity-90"
                             priority
                         />
@@ -206,8 +206,8 @@ export default function CurrentPets() {
                         <Image
                             src="/svgs/current-pets-right.svg"
                             alt="Current pets decoration right"
-                            width={200}
-                            height={200}
+                            width={150}
+                            height={150}
                             className="w-36 h-36 lg:w-48 lg:h-48 xl:w-56 xl:h-56 opacity-90"
                             priority
                         />
