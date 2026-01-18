@@ -9,19 +9,20 @@ import { successResponse, errorResponse, ErrorCodes } from '@/lib/api-utils'
 import { sendDailyReport } from '@/lib/services/email'
 
 interface RouteParams {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params
     const auth = await verifyStaff(request)
     if (!auth) return errorResponse('Staff access required', 403, ErrorCodes.AUTHORIZATION_ERROR)
 
     await connectDB()
 
-    const report = await ReportCard.findById(params.id)
-      .populate('pet', 'name type breed')
-      .populate('booking', 'bookingNumber user customer')
+    const report = await ReportCard.findById(id)
+        .populate('pet', 'name type breed')
+        .populate('booking', 'bookingNumber user customer')
 
     if (!report) return errorResponse('Report card not found', 404, ErrorCodes.NOT_FOUND)
     if (report.status === 'sent') return errorResponse('Report card already sent', 400, ErrorCodes.VALIDATION_ERROR)

@@ -7,17 +7,18 @@ import { verifyAuth } from '@/lib/auth'
 import { successResponse, errorResponse, ErrorCodes } from '@/lib/api-utils'
 
 interface RouteParams {
-  params: { bookingId: string }
+  params: Promise<{ bookingId: string }>
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const { bookingId } = await params
     const auth = await verifyAuth(request)
     if (!auth) return errorResponse('Authentication required', 401, ErrorCodes.AUTHENTICATION_ERROR)
 
     await connectDB()
 
-    const booking = await Booking.findById(params.bookingId)
+    const booking = await Booking.findById(bookingId)
     if (!booking) return errorResponse('Booking not found', 404, ErrorCodes.NOT_FOUND)
 
     // Check access for customers
@@ -27,16 +28,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    const query: any = { booking: params.bookingId }
+    const query: any = { booking: bookingId }
     if (auth.user.role !== 'admin' && auth.user.role !== 'staff') {
       query.status = 'sent'
     }
 
     const reports = await ReportCard.find(query)
-      .populate('pet', 'name type breed profileImage')
-      .populate('staff', 'name')
-      .sort({ date: -1 })
-      .lean()
+        .populate('pet', 'name type breed profileImage')
+        .populate('staff', 'name')
+        .sort({ date: -1 })
+        .lean()
 
     // Calculate summary
     const summary = {
