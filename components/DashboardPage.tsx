@@ -7,7 +7,8 @@ import Link from 'next/link'
 import {
     User, Calendar, Heart, CreditCard, Settings, LogOut, PawPrint, Plus,
     Edit2, Trash2, Clock, Star, Gift, MessageCircle, CheckCircle, TrendingUp,
-    Award, Cat, Dog, Home, ChevronRight, Phone, Mail, MapPin, Bell, Shield
+    Award, Cat, Dog, Home, ChevronRight, Phone, Mail, MapPin, Bell, Shield,
+    Loader2  // ← 新增
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -39,6 +40,7 @@ interface Booking {
     checkIn: string
     checkOut: string
     status: 'pending' | 'confirmed' | 'active' | 'completed' | 'cancelled'
+    paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded'  // ← 新增
     totalPrice: number
     addOns?: string[]
 }
@@ -54,6 +56,7 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true)
     const [showAddPet, setShowAddPet] = useState(false)
     const [newPet, setNewPet] = useState<Partial<Pet>>({ type: 'cat', vaccinated: true })
+    const [payingBookingId, setPayingBookingId] = useState<string | null>(null)  // ← 新增
 
     useEffect(() => {
         // 检查登录状态
@@ -138,6 +141,58 @@ export default function DashboardPage() {
             toast.success('Profile updated!')
         }
     }
+
+    // ============ 新增: Pay Now 功能 ============
+    const handlePayNow = async (booking: Booking) => {
+        setPayingBookingId(booking.id)
+
+        try {
+            const nights = Math.ceil(
+                (new Date(booking.checkOut).getTime() - new Date(booking.checkIn).getTime()) / (1000 * 60 * 60 * 24)
+            ) || 1
+
+            const res = await fetch('/api/booking/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    booking: {
+                        serviceType: booking.petType === 'cat' ? 'cat_boarding' : 'dog_boarding',
+                        petType: booking.petType,
+                        checkInDate: booking.checkIn,
+                        checkOutDate: booking.checkOut,
+                        pets: [{
+                            name: booking.petName,
+                            type: booking.petType,
+                            breed: '',
+                            weight: '30'
+                        }],
+                        totalPrice: booking.totalPrice,
+                        nights: nights
+                    }
+                })
+            })
+
+            const data = await res.json()
+
+            if (data.url) {
+                window.location.href = data.url
+            } else {
+                throw new Error(data.error || 'Failed to create checkout session')
+            }
+        } catch (error: any) {
+            console.error('Payment error:', error)
+            toast.error(error.message || 'Unable to process payment. Please try again.')
+        } finally {
+            setPayingBookingId(null)
+        }
+    }
+
+    const needsPayment = (booking: Booking) => {
+        return booking.paymentStatus !== 'paid' &&
+            ['pending', 'confirmed'].includes(booking.status)
+    }
+    // ============ 新增结束 ============
 
     if (loading) {
         return (
@@ -358,9 +413,26 @@ export default function DashboardPage() {
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
-                                                            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                                                        </span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
+                                                                {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                                                            </span>
+                                                            {/* ← 新增 Pay Now 按钮 */}
+                                                            {needsPayment(booking) && (
+                                                                <button
+                                                                    onClick={() => handlePayNow(booking)}
+                                                                    disabled={payingBookingId === booking.id}
+                                                                    className="flex items-center gap-1 px-3 py-1 bg-primary-600 text-white text-xs font-medium rounded-full hover:bg-primary-700 disabled:opacity-50 transition-all"
+                                                                >
+                                                                    {payingBookingId === booking.id ? (
+                                                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                                                    ) : (
+                                                                        <CreditCard className="w-3 h-3" />
+                                                                    )}
+                                                                    Pay Now
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
@@ -430,6 +502,26 @@ export default function DashboardPage() {
                                                                             {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                                                                         </span>
                                                                         <p className="mt-2 font-semibold text-neutral-900">${booking.totalPrice}</p>
+                                                                        {/* ← 新增 Pay Now 按钮 */}
+                                                                        {needsPayment(booking) && (
+                                                                            <button
+                                                                                onClick={() => handlePayNow(booking)}
+                                                                                disabled={payingBookingId === booking.id}
+                                                                                className="mt-2 flex items-center gap-1.5 px-4 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-all"
+                                                                            >
+                                                                                {payingBookingId === booking.id ? (
+                                                                                    <>
+                                                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                                                        Processing...
+                                                                                    </>
+                                                                                ) : (
+                                                                                    <>
+                                                                                        <CreditCard className="w-4 h-4" />
+                                                                                        Pay Now
+                                                                                    </>
+                                                                                )}
+                                                                            </button>
+                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             </div>
