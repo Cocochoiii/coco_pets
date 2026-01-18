@@ -90,6 +90,69 @@ const templates: Record<string, { subject: string; html: (data: any) => string }
       </div>
     `,
   },
+
+  'daily-report': {
+    subject: "📸 Today's Update for {petName}",
+    html: (data: any) => `
+      <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <div style="background: linear-gradient(135deg, #EEE1DB 0%, #D4A5A5 100%); padding: 30px; border-radius: 16px 16px 0 0; text-align: center;">
+          <div style="width: 50px; height: 50px; background: white; border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+            ${data.petType === 'dog' ? '🐕' : '🐱'}
+          </div>
+          <h1 style="color: #333; margin: 0; font-size: 24px;">Daily Report for ${data.petName}</h1>
+          <p style="color: #666; margin: 10px 0 0;">${data.date}</p>
+        </div>
+        <div style="background: white; padding: 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <span style="display: inline-block; padding: 8px 20px; border-radius: 20px; font-weight: 600; ${
+        data.overallMood === 'excellent' ? 'background: #d1fae5; color: #059669;' :
+            data.overallMood === 'great' ? 'background: #dcfce7; color: #16a34a;' :
+                data.overallMood === 'good' ? 'background: #dbeafe; color: #2563eb;' :
+                    data.overallMood === 'okay' ? 'background: #fef3c7; color: #d97706;' :
+                        'background: #fee2e2; color: #dc2626;'
+    }">
+              ${data.overallMood === 'excellent' ? '✨ Excellent Day!' :
+        data.overallMood === 'great' ? '😊 Great Day!' :
+            data.overallMood === 'good' ? '😊 Good Day' :
+                data.overallMood === 'okay' ? '😐 Okay Day' :
+                    '⚠️ Needs Attention'}
+            </span>
+          </div>
+          ${data.summary ? `
+          <div style="background: #fdf4ff; border-radius: 12px; padding: 15px; margin-bottom: 20px; border-left: 4px solid #D4A5A5;">
+            <p style="color: #333; line-height: 1.6; margin: 0;">${data.summary}</p>
+          </div>
+          ` : ''}
+          ${data.highlights && data.highlights.length > 0 ? `
+          <div style="margin-bottom: 20px;">
+            <h3 style="color: #333; font-size: 14px; margin: 0 0 10px;">⭐ Today's Highlights</h3>
+            <ul style="margin: 0; padding: 0; list-style: none;">
+              ${data.highlights.map((h: string) => `
+                <li style="padding: 8px 12px; background: #fffbeb; border-radius: 8px; margin-bottom: 6px; color: #78350f; font-size: 14px;">✨ ${h}</li>
+              `).join('')}
+            </ul>
+          </div>
+          ` : ''}
+          ${data.photos && data.photos.length > 0 ? `
+          <div style="margin-bottom: 20px;">
+            <h3 style="color: #333; font-size: 14px; margin: 0 0 10px;">📸 Photos from Today</h3>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+              ${data.photos.slice(0, 4).map((url: string) => `
+                <img src="${url}" alt="Pet photo" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px;" />
+              `).join('')}
+            </div>
+          </div>
+          ` : ''}
+          <div style="text-align: center; margin-top: 25px;">
+            <a href="\${config.app.url}/dashboard?tab=reports&report=${data.reportId}" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #D4A5A5 0%, #c09090 100%); color: white; text-decoration: none; border-radius: 10px; font-weight: 600;">View Full Report →</a>
+          </div>
+        </div>
+        <div style="text-align: center; padding-top: 20px;">
+          <p style="color: #999; font-size: 12px;">Coco's Pet Paradise | Wellesley Hills, MA</p>
+        </div>
+      </div>
+    `,
+  }
 }
 
 export async function sendEmail(options: EmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
@@ -127,5 +190,15 @@ export const sendPaymentConfirmation = (to: string, data: any) =>
 
 export const sendReviewRequest = (to: string, data: any) =>
   sendEmail({ to, template: 'review-request', data })
-
+// 添加到 email.ts 文件末尾的便捷函数:
+export const sendDailyReport = (to: string, data: {
+  petName: string
+  petType: 'cat' | 'dog'
+  date: string
+  summary: string
+  overallMood: string
+  highlights?: string[]
+  photos?: string[]
+  reportId: string
+}) => sendEmail({ to, template: 'daily-report', data })
 export default sendEmail
