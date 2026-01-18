@@ -202,7 +202,7 @@ export default function Testimonials() {
                         <span className="text-primary-700 font-semibold text-sm uppercase tracking-wide">
                             Testimonials
                         </span>
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-display font-bold mt-2 mb-4 text-neutral-900">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-display font-bold mt-2 mb-4 text-neutral-800">
                             What Pet Parents Say
                         </h2>
                     </div>

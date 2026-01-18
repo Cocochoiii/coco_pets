@@ -215,7 +215,7 @@ export default function CurrentPets() {
 
                     {/* 标题 + 文案 + stats */}
                     <div className="text-center">
-                        <h2 className="text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-display font-bold mb-4 text-neutral-900">
+                        <h2 className="text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-display font-bold mb-4 text-neutral-800">
                             Our <span className="text-gradient"> Furry Friends Gallery</span>
                         </h2>
                         <p className="text-sm md:text-lg lg:text-xl text-neutral-600 max-w-3xl mx-auto">

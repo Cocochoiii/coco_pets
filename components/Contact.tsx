@@ -175,7 +175,7 @@ export default function Contact() {
                         <span className="text-primary-700 font-semibold text-s md:text-sm uppercase tracking-wide">
                             Contact Us
                         </span>
-                        <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mt-2 mb-2 md:mb-4 text-neutral-900">
+                        <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mt-2 mb-2 md:mb-4 text-neutral-800">
                             Ready to Book <span className="text-gradient">Pet&apos;s Stay?</span>
                         </h2>
                     </div>

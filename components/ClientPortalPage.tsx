@@ -186,7 +186,7 @@ function ClientPortalContent() {
                     {/* Title */}
                     <div className="text-center mb-8">
                         <motion.h1
-                            className="text-3xl font-bold text-neutral-900 mb-2"
+                            className="text-3xl font-bold text-neutral-800 mb-2"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.1 }}

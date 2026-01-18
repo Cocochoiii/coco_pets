@@ -249,7 +249,7 @@ export default function Services() {
                         <span className="text-primary-700 font-semibold text-sm uppercase tracking-wide">
                             Our Services
                         </span>
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mt-2 mb-3 md:mb-4 text-neutral-900">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mt-2 mb-3 md:mb-4 text-neutral-800">
                             Comprehensive <span className="text-gradient">Pet Care</span>
                         </h2>
                     </div>

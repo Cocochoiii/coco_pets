@@ -291,7 +291,7 @@ const VirtualTour = () => {
                         <span className="text-primary-600 font-semibold text-sm uppercase tracking-wider">
                             Virtual Experience
                         </span>
-                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold mt-2 mb-4 text-neutral-900">
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold mt-2 mb-4 text-neutral-800">
                             Tour Our <span className="text-primary-500">Pet Paradise</span>
                         </h2>
                         <p className="text-neutral-600 flex items-center justify-center gap-2 text-base sm:text-lg max-w-2xl mx-auto">

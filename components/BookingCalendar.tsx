@@ -388,7 +388,7 @@ export default function BookingCalendar() {
                         <span className="text-primary-700 font-semibold text-sm uppercase tracking-wide">
                             Book Now
                         </span>
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-neutral-900 mt-2 mb-4">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-neutral-800 mt-2 mb-4">
                             Book Your Pet&apos;s <span className="text-gradient">Stay</span>
                         </h2>
                         <p className="text-sm sm:text-base md:text-lg lg:text-xl text-neutral-600 max-w-2xl mx-auto">

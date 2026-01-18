@@ -207,7 +207,7 @@ export default function HeroSection() {
                                         <AnimatePresence mode="wait">
                                             <motion.h1
                                                 key={textIndex}
-                                                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-display font-bold text-neutral-900 leading-tight"
+                                                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-display font-bold text-neutral-800 leading-tight"
                                                 initial={{ opacity: 0, y: 50, rotateX: -90 }}
                                                 animate={{ opacity: 1, y: 0, rotateX: 0 }}
                                                 exit={{ opacity: 0, y: -50, rotateX: 90 }}

@@ -41,7 +41,7 @@ export default function AboutSection() {
                         <span className="text-primary-700 font-semibold text-sm uppercase tracking-wide">
                             About Us
                         </span>
-                        <h2 className="text-2xl sm:text-3xl font-bold mt-2 mb-4 text-neutral-900">
+                        <h2 className="text-2xl sm:text-3xl font-bold mt-2 mb-4 text-neutral-800">
                             Hi! <span className="text-gradient">Coco&apos;s Pet Paradise</span> here
                         </h2>
 

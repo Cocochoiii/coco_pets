@@ -60,7 +60,7 @@ export default function ServiceArea() {
                     <span className="text-primary-700 font-semibold text-sm uppercase tracking-wide">
                         Service Area
                     </span>
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-display font-bold mt-2 mb-4 text-neutral-900">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-display font-bold mt-2 mb-4 text-neutral-800">
                         Serving Greater Boston
                     </h2>
                     <p className="text-sm sm:text-base md:text-lg lg:text-xl text-neutral-600 max-w-3xl mx-auto">
