@@ -14,7 +14,7 @@ import {
     Coffee, AlertCircle, Smile, Meh
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { ReportCard, MOOD_CONFIG } from '@/types/report-card'
+import { ReportCard } from '@/types/report-card'
 
 interface UserData {
     name: string
@@ -54,30 +54,33 @@ type TabType = 'overview' | 'bookings' | 'pets' | 'reports' | 'settings'
 // ==================== Report Card Components ====================
 
 const MoodBadge = ({ mood }: { mood: string }) => {
-    const config = MOOD_CONFIG[mood as keyof typeof MOOD_CONFIG] || MOOD_CONFIG.good
-    const colorClasses: Record<string, string> = {
-        emerald: 'bg-emerald-50 text-emerald-600',
-        green: 'bg-green-50 text-green-600',
-        blue: 'bg-blue-50 text-blue-600',
-        amber: 'bg-amber-50 text-amber-600',
-        red: 'bg-red-50 text-red-600'
+    const config: Record<string, { label: string; bgClass: string; textClass: string; icon: any }> = {
+        excellent: { label: 'Excellent', bgClass: 'bg-primary-100', textClass: 'text-primary-700', icon: Sparkles },
+        great: { label: 'Great', bgClass: 'bg-green-50', textClass: 'text-green-700', icon: Smile },
+        good: { label: 'Good', bgClass: 'bg-blue-50', textClass: 'text-blue-700', icon: Smile },
+        okay: { label: 'Okay', bgClass: 'bg-amber-50', textClass: 'text-amber-700', icon: Meh },
+        needs_attention: { label: 'Needs Attention', bgClass: 'bg-red-50', textClass: 'text-red-700', icon: AlertCircle }
     }
+    const moodConfig = config[mood] || config.good
+    const Icon = moodConfig.icon
     return (
-        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${colorClasses[config.color]}`}>
-            <span>{config.emoji}</span>
-            {config.label}
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${moodConfig.bgClass} ${moodConfig.textClass}`}>
+            <Icon className="w-3.5 h-3.5" />
+            {moodConfig.label}
         </span>
     )
 }
 
 const ActivityIcon = ({ type }: { type: string }) => {
     const iconMap: Record<string, { icon: any; color: string; bg: string }> = {
-        feeding: { icon: Utensils, color: 'text-orange-600', bg: 'bg-orange-100' },
+        feeding: { icon: Utensils, color: 'text-primary-600', bg: 'bg-primary-100' },
         walking: { icon: Footprints, color: 'text-green-600', bg: 'bg-green-100' },
-        playtime: { icon: Sparkles, color: 'text-pink-600', bg: 'bg-pink-100' },
+        playtime: { icon: Sparkles, color: 'text-primary-500', bg: 'bg-primary-50' },
         potty: { icon: Droplets, color: 'text-blue-600', bg: 'bg-blue-100' },
-        nap: { icon: Moon, color: 'text-slate-600', bg: 'bg-slate-100' },
-        socialization: { icon: Heart, color: 'text-red-600', bg: 'bg-red-100' }
+        nap: { icon: Moon, color: 'text-neutral-600', bg: 'bg-neutral-100' },
+        medication: { icon: Heart, color: 'text-red-500', bg: 'bg-red-50' },
+        grooming: { icon: Sparkles, color: 'text-primary-600', bg: 'bg-primary-100' },
+        socialization: { icon: Heart, color: 'text-primary-600', bg: 'bg-primary-100' }
     }
     const config = iconMap[type] || { icon: Activity, color: 'text-neutral-600', bg: 'bg-neutral-100' }
     const Icon = config.icon
@@ -89,7 +92,7 @@ const ActivityIcon = ({ type }: { type: string }) => {
 }
 
 const EnergyLevelBar = ({ level }: { level: number }) => {
-    const colors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-lime-400', 'bg-green-400']
+    const colors = ['bg-neutral-400', 'bg-primary-300', 'bg-primary-400', 'bg-primary-500', 'bg-primary-600']
     return (
         <div className="flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -153,14 +156,14 @@ const ReportCardDetailModal = ({ report, onClose }: { report: ReportCard; onClos
 
                     {/* Highlights */}
                     {report.highlights?.length > 0 && (
-                        <div className="bg-amber-50 rounded-xl p-5 border border-amber-100">
-                            <h3 className="font-semibold text-amber-800 mb-3 flex items-center gap-2">
-                                <Star className="w-5 h-5 fill-amber-400 text-amber-400" />Today&apos;s Highlights
+                        <div className="bg-primary-50 rounded-xl p-5 border border-primary-100">
+                            <h3 className="font-semibold text-primary-800 mb-3 flex items-center gap-2">
+                                <Star className="w-5 h-5 fill-primary-400 text-primary-400" />Today&apos;s Highlights
                             </h3>
                             <ul className="space-y-2">
                                 {report.highlights.map((h, idx) => (
-                                    <li key={idx} className="flex items-start gap-2 text-amber-900">
-                                        <Sparkles className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" /><span>{h}</span>
+                                    <li key={idx} className="flex items-start gap-2 text-primary-900">
+                                        <CheckCircle className="w-4 h-4 text-primary-500 mt-0.5 shrink-0" /><span>{h}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -172,7 +175,7 @@ const ReportCardDetailModal = ({ report, onClose }: { report: ReportCard; onClos
                         <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
                             <button onClick={() => toggleSection('media')} className="w-full px-5 py-4 flex items-center justify-between hover:bg-neutral-50">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center"><Camera className="w-5 h-5 text-pink-600" /></div>
+                                    <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center"><Camera className="w-5 h-5 text-primary-600" /></div>
                                     <div className="text-left">
                                         <h3 className="font-semibold text-neutral-900">Photos & Videos</h3>
                                         <p className="text-sm text-neutral-500">{report.media.length} items</p>
@@ -189,7 +192,7 @@ const ReportCardDetailModal = ({ report, onClose }: { report: ReportCard; onClos
                                                     <motion.div key={idx} whileHover={{ scale: 1.02 }} className="relative aspect-square rounded-xl overflow-hidden cursor-pointer group" onClick={() => { setGalleryIndex(idx); setShowGallery(true); }}>
                                                         <Image src={item.thumbnailUrl || item.url} alt="" fill className="object-cover" />
                                                         {item.type === 'video' && <div className="absolute inset-0 bg-black/30 flex items-center justify-center"><Play className="w-10 h-10 text-white fill-white" /></div>}
-                                                        {item.isHighlight && <div className="absolute top-2 right-2 bg-amber-400 p-1 rounded-full"><Star className="w-3 h-3 text-white fill-white" /></div>}
+                                                        {item.isHighlight && <div className="absolute top-2 right-2 bg-primary-500 p-1 rounded-full"><Star className="w-3 h-3 text-white fill-white" /></div>}
                                                     </motion.div>
                                                 ))}
                                             </div>
@@ -242,7 +245,7 @@ const ReportCardDetailModal = ({ report, onClose }: { report: ReportCard; onClos
                         <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
                             <button onClick={() => toggleSection('health')} className="w-full px-5 py-4 flex items-center justify-between hover:bg-neutral-50">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center"><Heart className="w-5 h-5 text-green-600" /></div>
+                                    <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center"><Heart className="w-5 h-5 text-primary-600" /></div>
                                     <div className="text-left">
                                         <h3 className="font-semibold text-neutral-900">Health & Wellness</h3>
                                         <p className="text-sm text-neutral-500">Overall: {report.healthObservations.overallCondition}</p>
@@ -260,14 +263,14 @@ const ReportCardDetailModal = ({ report, onClose }: { report: ReportCard; onClos
                                             </div>
                                             <div className="bg-neutral-50 rounded-lg p-3">
                                                 <p className="text-sm text-neutral-500 mb-2">Potty</p>
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-blue-600 flex items-center gap-1"><Droplets className="w-4 h-4" />{report.healthObservations.peeCount}x</span>
-                                                    <span className="text-amber-600">💩 {report.healthObservations.poopCount}x</span>
+                                                <div className="flex items-center gap-3 text-sm">
+                                                    <span className="text-primary-600 flex items-center gap-1"><Droplets className="w-4 h-4" />{report.healthObservations.peeCount}x</span>
+                                                    <span className="text-neutral-600 flex items-center gap-1"><span className="w-4 h-4 rounded-full bg-neutral-300 flex items-center justify-center text-[10px]">P</span>{report.healthObservations.poopCount}x</span>
                                                 </div>
                                             </div>
                                             <div className="bg-neutral-50 rounded-lg p-3">
                                                 <p className="text-sm text-neutral-500 mb-2">Water Intake</p>
-                                                <span className="font-medium text-green-600 capitalize">{report.healthObservations.waterIntake}</span>
+                                                <span className="font-medium text-primary-600 capitalize">{report.healthObservations.waterIntake}</span>
                                             </div>
                                         </div>
                                     </motion.div>
@@ -533,7 +536,7 @@ function DashboardContent() {
                                         <tab.icon className="w-5 h-5" />
                                         <span className="font-medium">{tab.label}</span>
                                         {tab.id === 'bookings' && upcomingBookings.length > 0 && <span className="ml-auto bg-primary-600 text-white text-xs px-2 py-0.5 rounded-full">{upcomingBookings.length}</span>}
-                                        {tab.id === 'reports' && reportCards.length > 0 && <span className="ml-auto bg-pink-500 text-white text-xs px-2 py-0.5 rounded-full">{reportCards.length}</span>}
+                                        {tab.id === 'reports' && reportCards.length > 0 && <span className="ml-auto bg-primary-500 text-white text-xs px-2 py-0.5 rounded-full">{reportCards.length}</span>}
                                     </button>
                                 ))}
                             </nav>
@@ -567,14 +570,14 @@ function DashboardContent() {
                                         </div>
                                         <div className="bg-white rounded-2xl p-6 shadow-soft-md">
                                             <div className="flex items-center justify-between mb-4">
-                                                <div className="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center"><Heart className="w-6 h-6 text-pink-600" /></div>
+                                                <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center"><Heart className="w-6 h-6 text-primary-600" /></div>
                                                 <span className="text-2xl font-bold text-neutral-900">{pets.length}</span>
                                             </div>
                                             <h3 className="font-medium text-neutral-600">Registered Pets</h3>
                                         </div>
                                         <div className="bg-white rounded-2xl p-6 shadow-soft-md">
                                             <div className="flex items-center justify-between mb-4">
-                                                <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center"><FileText className="w-6 h-6 text-amber-600" /></div>
+                                                <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center"><FileText className="w-6 h-6 text-primary-600" /></div>
                                                 <span className="text-2xl font-bold text-neutral-900">{reportCards.length}</span>
                                             </div>
                                             <h3 className="font-medium text-neutral-600">Report Cards</h3>
@@ -598,8 +601,8 @@ function DashboardContent() {
                                             <button onClick={() => { setActiveTab('pets'); setShowAddPet(true); }} className="flex flex-col items-center gap-2 p-4 bg-primary-50 hover:bg-primary-100 rounded-xl transition-all">
                                                 <PawPrint className="w-8 h-8 text-primary-600" /><span className="text-sm font-medium text-neutral-700">Add a Pet</span>
                                             </button>
-                                            <button onClick={() => setActiveTab('reports')} className="flex flex-col items-center gap-2 p-4 bg-pink-50 hover:bg-pink-100 rounded-xl transition-all">
-                                                <FileText className="w-8 h-8 text-pink-600" /><span className="text-sm font-medium text-neutral-700">View Reports</span>
+                                            <button onClick={() => setActiveTab('reports')} className="flex flex-col items-center gap-2 p-4 bg-primary-50 hover:bg-primary-100 rounded-xl transition-all">
+                                                <FileText className="w-8 h-8 text-primary-600" /><span className="text-sm font-medium text-neutral-700">View Reports</span>
                                             </button>
                                             <Link href="/#contact" className="flex flex-col items-center gap-2 p-4 bg-blue-50 hover:bg-blue-100 rounded-xl transition-all">
                                                 <MessageCircle className="w-8 h-8 text-blue-600" /><span className="text-sm font-medium text-neutral-700">Contact Us</span>
