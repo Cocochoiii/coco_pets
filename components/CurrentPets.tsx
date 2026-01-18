@@ -159,7 +159,7 @@ export default function CurrentPets() {
                         whileInView={{
                             opacity: 1,
                             x: -10,
-                            scale: 1.2,
+                            scale: 1.3,
                             y: [0, -20, 0],
                         }}
                         viewport={{ once: true }}
@@ -190,7 +190,7 @@ export default function CurrentPets() {
                         whileInView={{
                             opacity: 1,
                             x: 10,
-                            scale: 1.2,
+                            scale: 1.3,
                             y: [0, -20, 0],
                         }}
                         viewport={{ once: true }}
