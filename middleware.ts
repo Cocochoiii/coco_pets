@@ -3,6 +3,19 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
+    // Skip middleware for API routes, static files, etc.
+    const { pathname } = request.nextUrl
+
+    // Skip certain paths
+    if (
+        pathname.startsWith('/api') ||
+        pathname.startsWith('/_next') ||
+        pathname.startsWith('/favicon') ||
+        pathname.includes('.')
+    ) {
+        return NextResponse.next()
+    }
+
     const response = NextResponse.next()
 
     // Add security headers
@@ -16,6 +29,14 @@ export function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        '/((?!api|_next/static|_next/image|favicon.ico).*)',
+        /*
+         * Match all request paths except:
+         * - api (API routes)
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         * - public folder
+         */
+        '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)',
     ],
 }
