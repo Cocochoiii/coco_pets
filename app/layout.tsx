@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 import ChatWidget from '@/components/ChatWidget'
+import BackgroundMusic from '@/components/BackgroundMusic'
 import PageTransition from '@/components/PageTransition'
 import { MusicProvider } from '@/contexts/MusicContext'
 
@@ -52,6 +53,7 @@ export default function RootLayout({
                 </main>
                 <Footer />
                 <ChatWidget />
+                <BackgroundMusic />
             </PageTransition>
         </MusicProvider>
 
