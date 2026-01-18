@@ -151,7 +151,7 @@ export default function CurrentPets() {
                         />
                     </div>
 
-                    {/* LEFT SVG - 桌面端左右两侧保持原样 */}
+                    {/* LEFT SVG - 桌面端左右两侧 - 调小尺寸 */}
                     <motion.div
                         className="hidden lg:block absolute top-4 left-0"
                         initial={{ opacity: 0, x: -50, scale: 0.8 }}
@@ -159,7 +159,7 @@ export default function CurrentPets() {
                         whileInView={{
                             opacity: 1,
                             x: -10,
-                            scale: 1.8,
+                            scale: 1.2,
                             y: [0, -20, 0],
                         }}
                         viewport={{ once: true }}
@@ -177,12 +177,12 @@ export default function CurrentPets() {
                             alt="Current pets decoration left"
                             width={150}
                             height={150}
-                            className="w-36 h-36 lg:w-48 lg:h-48 xl:w-56 xl:h-56 opacity-90"
+                            className="w-28 h-28 lg:w-36 lg:h-36 xl:w-40 xl:h-40 opacity-90"
                             priority
                         />
                     </motion.div>
 
-                    {/* RIGHT SVG - 桌面端 */}
+                    {/* RIGHT SVG - 桌面端 - 调小尺寸 */}
                     <motion.div
                         className="hidden lg:block absolute top-4 right-0"
                         initial={{ opacity: 0, x: 50, scale: 0.8 }}
@@ -190,7 +190,7 @@ export default function CurrentPets() {
                         whileInView={{
                             opacity: 1,
                             x: 10,
-                            scale: 1.8,
+                            scale: 1.2,
                             y: [0, -20, 0],
                         }}
                         viewport={{ once: true }}
@@ -208,7 +208,7 @@ export default function CurrentPets() {
                             alt="Current pets decoration right"
                             width={150}
                             height={150}
-                            className="w-36 h-36 lg:w-48 lg:h-48 xl:w-56 xl:h-56 opacity-90"
+                            className="w-28 h-28 lg:w-36 lg:h-36 xl:w-40 xl:h-40 opacity-90"
                             priority
                         />
                     </motion.div>
